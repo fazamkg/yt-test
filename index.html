@@ -9,7 +9,8 @@
 
   <title>YT Game Wrapper WebGL Template</title>
   <link rel="stylesheet" href="TemplateData/style.css">
-  <script src="https://www.youtube.com/game_api/v1?environment=prod&bundle=preview&key=espTypiygyhUOfxePeuqOEsNWVnwx">// Load YT Game API code</script>
+  <script src="https://www.youtube.com/game_api/v1">// Load YT Game API code</script>
+  <link rel="shortcut icon" href="icon.png" />
 </head>
 
 <body>
@@ -42,21 +43,6 @@
     // banner/ribbon for a few seconds, or a permanent error message on top 
     // of the canvas if type=='error'.
     function unityShowBanner(msg, type) {
-      // function updateBannerVisibility() {
-      //   warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
-      // }
-      // var div = document.createElement('div');
-      // div.innerHTML = msg;
-      // warningBanner.appendChild(div);
-      // if (type == 'error') div.style = 'background: red; padding: 10px;';
-      // else {
-      //   if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
-      //   setTimeout(function() {
-      //     warningBanner.removeChild(div);
-      //     updateBannerVisibility();
-      //   }, 5000);
-      // }
-      // updateBannerVisibility();
     }
 
     var buildUrl = "Build";
@@ -101,8 +87,9 @@
 
     loadingBar.style.display = "block";
 
-    // Trigger loading resources, if Zipped file is used for WASM file we will decompress it.
-    // If the file is not zipped we bypass the decompression step. 
+    // loadResources is only used if you need load Zipped files for .wasm, .js, or .data and need 
+    // them to be decompressed. If the file is not zipped we bypass decompression step automatically,
+    // however its best to not trigger this if you dont used compression. 
     // NOTE: GZip does not work ATM.  If this is needed Unarchiver will need to be updated.
     loadResources = (callback) => {
       const subZipStr = '.zip';
@@ -131,9 +118,18 @@
         } else if (codeUrl.includes(subJSStr)){
           blobType = 'text/javascript';
         }
-        
+
         DecompressFile(codeUrl, blobType, (file) => {
           config.codeUrl = file;
+          //callback();
+        });
+
+        codeUrl = config.dataUrl
+        blobType = 'application/data';
+        
+        
+        DecompressFile(codeUrl, blobType, (file) => {
+          config.dataUrl = file;
           callback();
         });
       } else {
@@ -198,8 +194,33 @@
       document.body.appendChild(script);
     }
 
-    // Load resources
-    loadResources(InitUnitySection);  
+    // Path 1: Use this path if no decompression of your .wasm, .data, .js files are needed
+    loadResources(InitUnitySection);
+
+    // Path 2: Use this path to Load resources (.wasm, .data, .js) that are Zipped and need to be decompressed
+    // if you dont use compresseion its best to comment out Path 1 and uncomment Path 2.
+    // loadResources(InitUnitySection);  // Uncomment this line to start Unity by loading zipped files
+
+  // window.onfocus = function() {
+  //   unityGameInstance.SendMessage("DeleteData", "SaveData");
+  // };
+  window.onblur = function() {
+    unityGameInstance.SendMessage("DeleteData", "SaveData");
+  };
+  window.ontouchcancel = function() {
+    unityGameInstance.SendMessage("DeleteData", "SaveData");
+  };
+
+  window.ontouchleave = function() {
+    unityGameInstance.SendMessage("DeleteData", "SaveData");
+  };
+  
+  window.BeforeUnloadEvent = function (){
+    unityGameInstance.SendMessage("DeleteData", "SaveData");
+    wait(1000);
+  }
+  
+  
   </script>
 </body>
 </html>
