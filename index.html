@@ -204,6 +204,10 @@
   // window.onfocus = function() {
   //   unityGameInstance.SendMessage("DeleteData", "SaveData");
   // };
+  window.addEventListener("blur", function (e) {
+    console.log("Window blurred — overriding default Unity behavior.");
+    e.stopImmediatePropagation();
+}, true);
   
   
   </script>
